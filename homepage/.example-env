@@ -1,0 +1,8 @@
+MONGODB_URL=mongodb://localhost:27017
+MONGODB_DATABASE=appstore
+MONGODB_COLLECTION=products
+ELASTICSEARCH_URL=http://localhost:9200
+ELASTICSEARCH_INDEX=products
+APP_TITLE=App Store Homepage API
+APP_VERSION=1.0.0
+DEBUG=true

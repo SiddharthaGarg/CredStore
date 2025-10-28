@@ -1,0 +1,22 @@
+----
+I am building some parts of an  apple appstore like system
+- homepage and review-n ratings for the product.
+I am starting with the homepage module for which i should have basic api's like add product, list products , search for a product. 
+Can you setup my homepage module for that ? Requirements :-
+1. MongoDb for storing product details
+2. Elastic Search for supporting search capabilities
+3. FastAPI server with api implementations ( no authentication required ) for the admin Api - Add product and List Product and Search for a product 
+
+----
+
+
+----
+
+I am using uv for dependencies. Getting elastic search connection issue while starting server. Fix that and do some api calls 
+to ensure smooth working
+----
+
+
+----
+Explain this search_products function.
+----

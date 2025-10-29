@@ -9,6 +9,7 @@ from bson import ObjectId
 from db.dao import ReviewDAO
 from services.product_validation_service import product_validator
 from .review_events import ReviewCreated, ReviewUpdated, ReviewDeleted
+from .event_bus import event_bus
 
 logger = logging.getLogger(__name__)
 
@@ -99,13 +100,13 @@ async def _update_mongodb_rating(product_id: str, rating: Optional[float]):
         logger.error(f"Error updating MongoDB rating for product {product_id}: {e}", exc_info=True)
 
 
+
+
 def setup_event_handlers():
     """Register all event handlers with the event bus.
     
     This should be called during application startup.
     """
-    from .event_bus import event_bus
-    
     # Subscribe handlers to events
     event_bus.subscribe(ReviewCreated, update_product_rating_on_review_created)
     event_bus.subscribe(ReviewUpdated, update_product_rating_on_review_updated)

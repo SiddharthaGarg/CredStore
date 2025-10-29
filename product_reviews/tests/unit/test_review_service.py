@@ -319,7 +319,6 @@ class TestDeleteReview:
         result = await review_service.delete_review(str(mock_review.id))
         
         assert result is True
-        mock_metrics_dao.delete_metrics_by_review_id.assert_called_once()
         mock_review_dao.delete.assert_called_once()
         mock_event_bus.publish.assert_called_once()
 

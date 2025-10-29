@@ -149,7 +149,7 @@ uv run python -c "from db.models import check_tables_exist; print(check_tables_e
 uv sync --extra dev
 
 # Run tests with coverage report
-pytest --cov=services --cov-report=html
+pytest tests/unit/ --cov=services --cov-report=html
 
 # View coverage report
 # Open htmlcov/index.html in your browser

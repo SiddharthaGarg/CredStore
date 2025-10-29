@@ -10,13 +10,13 @@ MODELS = [User, Review, Comment, ReviewMetrics]
 
 
 def check_tables_exist():
-    """Check if all required tables exist in the database."""
+    """Check if all required tables exist in the database.
+    """
     try:
-        with database:
-            for model in MODELS:
-                if not model.table_exists():
-                    return False
-            return True
+        for model in MODELS:
+            if not model.table_exists():
+                return False
+        return True
     except Exception:
         return False
 

@@ -4,18 +4,11 @@ import uuid
 from enum import Enum
 from peewee import Model, PostgresqlDatabase, UUIDField
 
-from config import settings
-
-
-# Initialize database connection
+# Initialize database connection with autoconnect=False
+# Connection will be established by DatabaseManager
 database = PostgresqlDatabase(
-    settings.db_name,
-    user=settings.db_user,
-    password=settings.db_password,
-    host=settings.db_host,
-    port=settings.db_port,
-    autorollback=True,
-    autoconnect=True
+    None,  # Will be set by DatabaseManager.connect()
+    autoconnect=False  # Don't connect at import time
 )
 
 

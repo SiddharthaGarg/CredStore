@@ -1,11 +1,12 @@
 """Database connection and utilities."""
 
 import logging
+import config
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+from peewee import PostgresqlDatabase
 
 from db.models import database, MODELS, check_tables_exist
-from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,27 @@ class DatabaseManager:
     async def connect(self):
         """Connect to database and create tables if needed."""
         try:
+            settings = config.settings
+            
+            # Close existing connection if open
             if not database.is_closed():
                 database.close()
             
+            database.init(
+                database=settings.db_name,
+                user=settings.db_user,
+                password=settings.db_password,
+                host=settings.db_host,
+                port=settings.db_port
+            )
+            
             database.connect(reuse_if_open=True)
+            
+            # Verify connection is actually open
+            if database.is_closed():
+                raise RuntimeError("Database connection failed to open after connect() call")
+            
+            # Verify connection with a test query
             database.execute_sql('SELECT 1')
             
             if not check_tables_exist():

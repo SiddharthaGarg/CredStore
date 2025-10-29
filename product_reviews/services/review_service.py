@@ -137,7 +137,6 @@ class ReviewService(BaseService):
             
             product_id = review.product_id
             
-            self.metrics_dao.delete_metrics_by_review_id(review_id)
             self.review_dao.delete(review)
             
             self._emit_review_deleted_event(

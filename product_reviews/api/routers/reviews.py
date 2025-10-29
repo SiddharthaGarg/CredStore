@@ -17,6 +17,7 @@ from services.base_service import (
     ServiceException, ValidationException, NotFoundException, PermissionException
 )
 from events import event_bus
+from db.dao import ReviewDAO
 
 logger = logging.getLogger(__name__)
 
@@ -26,15 +27,12 @@ class ReviewRouter:
     
     def __init__(self):
         """Initialize router with dependencies."""
-        # Initialize services with dependency injection
         self.review_service = ReviewService(event_bus=event_bus)
         self.comment_service = CommentService()
         self.metrics_service = MetricsService()
         
-        # Create router
         self.router = APIRouter(prefix="/reviews", tags=["reviews"])
         
-        # Register routes
         self._register_routes()
     
     def _register_routes(self):
@@ -69,12 +67,6 @@ class ReviewRouter:
             self.delete_review,
             methods=["DELETE"],
             status_code=status.HTTP_204_NO_CONTENT
-        )
-        self.router.add_api_route(
-            "/{review_id}",
-            self.get_review_by_id,
-            methods=["GET"],
-            response_model=ReviewDetailResponse
         )
         self.router.add_api_route(
             "/{review_id}/comments",
@@ -304,36 +296,6 @@ class ReviewRouter:
                 content=error_response.model_dump()
             )
     
-    async def get_review_by_id(
-        self,
-        review_id: str = Path(..., description="Review ID")
-    ):
-        """Get a specific review by ID."""
-        try:
-            from db.dao import ReviewDAO
-            review_dao = ReviewDAO()
-            review = review_dao.get_review_with_user(review_id)
-            
-            if not review:
-                raise NotFoundException("Review", review_id)
-            
-            review_response = await self._handle_service_exceptions(
-                self.review_service.get_review_response, review
-            )
-            
-            return ReviewDetailResponse(data=review_response, err=None)
-            
-        except HTTPException as e:
-            error_response = ReviewDetailResponse(
-                data=None,
-                err=ErrorResponse(code=e.detail["code"], message=e.detail["message"])
-            )
-            return JSONResponse(
-                status_code=e.status_code,
-                content=error_response.model_dump()
-            )
-
-
 # Create router instance
 _review_router = ReviewRouter()
 router = _review_router.router

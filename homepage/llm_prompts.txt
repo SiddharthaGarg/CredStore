@@ -24,3 +24,8 @@ Explain this search_products function.
 ----
 What should flow look like when API request comes for adding a product i.e ideal way to use elastic search and mongoDb together ?
 ----
+
+----
+Okay, Now following similar project structure for product_reviews module ( proper separation of concern , classes and dependency injection for api, db and service layerr) , restructure my homepage module. 
+Restructuring shouldn't affect core functionality and business logics
+----

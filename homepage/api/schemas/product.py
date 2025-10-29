@@ -1,30 +1,8 @@
-"""Product models and schemas."""
+"""Product-related API schemas."""
 
 from datetime import datetime
-from typing import List, Optional, Any
-from pydantic import BaseModel, Field, field_validator
-from bson import ObjectId
-
-
-class PyObjectId(ObjectId):
-    """Custom ObjectId for Pydantic models."""
-    
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source_type: Any, handler):
-        from pydantic_core import core_schema
-        
-        def validate_object_id(value: Any, handler_info=None) -> ObjectId:
-            if isinstance(value, ObjectId):
-                return value
-            if isinstance(value, str):
-                if ObjectId.is_valid(value):
-                    return ObjectId(value)
-            raise ValueError("Invalid ObjectId")
-        
-        return core_schema.with_info_plain_validator_function(
-            validate_object_id,
-            serialization=core_schema.to_string_ser_schema(),
-        )
+from typing import List, Optional
+from pydantic import BaseModel, Field
 
 
 class ProductBase(BaseModel):
@@ -64,20 +42,6 @@ class ProductUpdate(BaseModel):
     tags: Optional[List[str]] = None
 
 
-class ProductInDB(ProductBase):
-    """Product model as stored in database."""
-    
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    model_config = {
-        "populate_by_name": True,
-        "arbitrary_types_allowed": True,
-        "json_encoders": {ObjectId: str}
-    }
-
-
 class ProductResponse(BaseModel):
     """Product response schema."""
     
@@ -114,3 +78,4 @@ class SearchResponse(BaseModel):
     total: int
     query: str
     took: int  # Search time in milliseconds
+

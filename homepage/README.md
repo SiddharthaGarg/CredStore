@@ -21,14 +21,6 @@ A FastAPI-based backend service for an App Store-like homepage module with Mongo
 ## Initial Project Setup
 **Install python3.13  and UV (package manager) using brew**
 
-**Activate Virtual Env and Install Python dependencies**:
-   ```bash
-   cd {project-directory}
-   uv init .
-   uv venv venv
-   source venv/bin/activate
-   uv sync --active.
-   ```
 
 ## Quick Start with Docker
 
@@ -37,6 +29,7 @@ A FastAPI-based backend service for an App Store-like homepage module with Mongo
 1. **Start the databases**:
    ```bash
    docker-compose up -d
+   # Run with sudo if facing permission issues
    ```
 
 
@@ -56,9 +49,18 @@ A FastAPI-based backend service for an App Store-like homepage module with Mongo
    EOF
    ```
 
-3. **Run the API server**:
+3. **Activate Virtual Env**:
    ```bash
-   uv run --active python main.py
+   # Create virtual env and install dependencies
+   uv sync
+
+   # Activate virtual venv 
+   source .venv/bin/activate
+   ```
+
+4. **Run the API server**:
+   ```bash
+   uv run  python main.py
    ```
 
 The API will be available at `http://localhost:8000` with interactive docs at `http://localhost:8000/docs`.

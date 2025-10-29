@@ -263,3 +263,15 @@ Great, now do the following things ->
 1. Update Get product review metrics api to return avg rating and total reviews also i.e use get_review_summary_stats function in the metrics service
 2. Remove unused functions in all the files  including service and dao layer
 ---
+
+
+----
+Can you please add unit test cases for service files in  homepage module ?. Important instructions to follow :- 
+1. Ensure 100 % code coverage for the files being tested
+2. U can safely mock database and any third party calls
+3. Add required dependency like if using pytest in pyrpoject.toml file and add command to run tests with writing covergae report to html in readme file
+----
+
+----
+These test cases are failing, becuase user_id should be an UUID and not some random string
+----

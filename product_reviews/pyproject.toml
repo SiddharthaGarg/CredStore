@@ -20,6 +20,7 @@ dependencies = [
 dev = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
+    "pytest-cov>=4.1.0",
     "httpx>=0.25.1",
 ]
 
@@ -38,6 +39,23 @@ include = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["services"]
+omit = ["tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
 
 [tool.ruff]
 line-length = 88

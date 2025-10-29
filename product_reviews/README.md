@@ -147,6 +147,21 @@ uv run python -c "from db.models import check_tables_exist; print(check_tables_e
 
 ## Testing
 
+### Unit Tests
+
+```bash
+# Install test dependencies
+uv sync --extra dev
+
+# Run tests with coverage report
+pytest --cov=services --cov-report=html
+
+# View coverage report
+# Open htmlcov/index.html in your browser
+```
+
+### API Testing
+
 ```bash
 # Health check
 curl http://localhost:8001/health

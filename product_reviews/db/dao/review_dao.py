@@ -6,7 +6,7 @@ from uuid import UUID
 from datetime import datetime
 
 from peewee import DoesNotExist, fn
-from models import Review, User, ReviewStatus
+from db.models import Review, User, ReviewStatus
 from .base_dao import BaseDAO, DAOException
 
 logger = logging.getLogger(__name__)
@@ -63,24 +63,6 @@ class ReviewDAO(BaseDAO):
             logger.error(f"Error getting reviews for product {product_id}: {e}")
             return []
     
-    def get_reviews_by_user(self, user_id: str, limit: int = 20, offset: int = 0) -> List[Review]:
-        """Get reviews by a specific user."""
-        try:
-            return list(
-                Review
-                .select()
-                .where(
-                    (Review.user == UUID(user_id)) &
-                    (Review.status == ReviewStatus.ACTIVE.value)
-                )
-                .order_by(Review.created_at.desc())
-                .offset(offset)
-                .limit(limit)
-            )
-        except Exception as e:
-            logger.error(f"Error getting reviews by user {user_id}: {e}")
-            return []
-    
     def update_review(self, review: Review, rating: int = None, description: str = None) -> Review:
         """Update review content."""
         try:
@@ -97,14 +79,6 @@ class ReviewDAO(BaseDAO):
         except Exception as e:
             logger.error(f"Error updating review {review.id}: {e}")
             raise DAOException(f"Failed to update review: {e}")
-    
-    def soft_delete_review(self, review: Review) -> Review:
-        """Soft delete a review by changing status."""
-        try:
-            return self.update(review, status=ReviewStatus.INACTIVE.value, updated_at=datetime.now())
-        except Exception as e:
-            logger.error(f"Error soft deleting review {review.id}: {e}")
-            raise DAOException(f"Failed to delete review: {e}")
     
     def get_rating_distribution(self, product_id: str) -> Dict[str, int]:
         """Get rating distribution for a product."""
@@ -129,19 +103,15 @@ class ReviewDAO(BaseDAO):
             logger.error(f"Error getting rating distribution for product {product_id}: {e}")
             return {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0}
     
-    def user_has_reviewed_product(self, user_id: str, product_id: str) -> bool:
+    def get_by_user_and_product(self, user_id: str, product_id: str) -> Optional[Review]:
         """Check if user has already reviewed a product."""
         try:
-            return (Review
-                   .select()
-                   .where(
-                       (Review.user == UUID(user_id)) &
-                       (Review.product_id == product_id)
-                   )
-                   .exists())
+            return Review.get((Review.user == UUID(user_id)) & (Review.product_id == product_id))
+        except DoesNotExist:
+            return None
         except Exception as e:
-            logger.error(f"Error checking if user {user_id} reviewed product {product_id}: {e}")
-            return False
+            logger.error(f"Error getting review by user {user_id} and product {product_id}: {e}")
+            return None
     
     def get_review_count_by_product(self, product_id: str) -> int:
         """Get total review count for a product."""

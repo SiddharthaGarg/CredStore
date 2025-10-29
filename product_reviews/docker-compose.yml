@@ -33,7 +33,7 @@ services:
       - LIQUIBASE_COMMAND_CHANGELOG_FILE=changelog/db.changelog-master.xml
       - LIQUIBASE_LOG_LEVEL=INFO
     volumes:
-      - ./migrations:/liquibase/changelog:Z
+      - ./db/migrations:/liquibase/changelog:Z
     command: update
     networks:
       - product_reviews_network

@@ -252,3 +252,14 @@ Whenever a review is added / updated / deleted for a product successfully , upda
  it can be extracted out as a separate process later on 
  )
 -----
+
+----
+I have restructured the project a bit to set proper hieracrchy , separation of concerns , dependency injection for reviews router,
+db model and service files. Follow the same process and restructure project accordingly
+----
+
+---
+Great, now do the following things ->
+1. Update Get product review metrics api to return avg rating and total reviews also i.e use get_review_summary_stats function in the metrics service
+2. Remove unused functions in all the files  including service and dao layer
+---

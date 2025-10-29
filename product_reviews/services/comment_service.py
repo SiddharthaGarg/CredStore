@@ -3,9 +3,9 @@
 import logging
 from typing import List, Optional
 
-from schemas import CommentCreate, CommentResponse, UserDetails
+from api.schemas import CommentCreate, CommentResponse, UserDetails
 from .base_service import BaseService, ServiceException, ValidationException, NotFoundException
-from dao import CommentDAO, ReviewDAO, UserDAO, MetricsDAO
+from db.dao import CommentDAO, ReviewDAO, UserDAO, MetricsDAO
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +23,9 @@ class CommentService(BaseService):
     async def create_comment(self, review_id: str, comment_data: CommentCreate) -> bool:
         """Create a new comment on a review."""
         try:
-            # Validate user exists
             if not await self.validate_user_exists(comment_data.user_id):
                 raise ValidationException("Invalid user ID")
             
-            # Validate review exists and is active
             review = self.review_dao.get_review_with_user(review_id)
             if not review:
                 raise NotFoundException("Review", review_id)
@@ -35,14 +33,12 @@ class CommentService(BaseService):
             if review.status != "active":
                 raise ValidationException("Cannot comment on inactive review")
             
-            # Create comment
             comment = self.comment_dao.create_comment(
                 review_id=review_id,
                 user_id=comment_data.user_id,
                 description=comment_data.description
             )
             
-            # Update comment count in metrics
             self.metrics_dao.increment_comments_count(review_id)
             
             self._log_operation("Create comment", str(comment.id), True)
@@ -62,7 +58,6 @@ class CommentService(BaseService):
     ) -> List[CommentResponse]:
         """Get comments for a review with pagination."""
         try:
-            # Validate review exists
             review = self.review_dao.get_review_with_user(review_id)
             if not review:
                 raise NotFoundException("Review", review_id)
@@ -86,7 +81,6 @@ class CommentService(BaseService):
     async def get_comment_response(self, comment) -> CommentResponse:
         """Convert comment to response format."""
         try:
-            # Get user details
             user_details = UserDetails(
                 id=str(comment.user.id),
                 name=comment.user.name,
@@ -104,32 +98,4 @@ class CommentService(BaseService):
             logger.error(f"Error creating comment response: {e}")
             raise ServiceException("Failed to format comment response")
     
-    async def delete_comment(self, comment_id: str, user_id: str) -> bool:
-        """Delete a comment (hard delete)."""
-        try:
-            comment = self.comment_dao.get_comment_with_user(comment_id)
-            if not comment:
-                raise NotFoundException("Comment", comment_id)
-            
-            # Validate user ownership
-            if str(comment.user.id) != user_id:
-                raise ValidationException("User can only delete their own comments")
-            
-            # Get the review ID to update metrics
-            review_id = str(comment.review.id)
-            
-            # Delete comment
-            self.comment_dao.delete_comment(comment)
-            
-            # Update comment count in metrics
-            self.metrics_dao.decrement_comments_count(review_id)
-            
-            self._log_operation("Delete comment", comment_id, True)
-            return True
-            
-        except (ValidationException, NotFoundException):
-            raise
-        except Exception as e:
-            logger.error(f"Error deleting comment {comment_id}: {e}")
-            raise ServiceException("Failed to delete comment")
 

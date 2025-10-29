@@ -4,7 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from models import database, MODELS
+from db.models import database, MODELS, check_tables_exist
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -22,14 +22,9 @@ class DatabaseManager:
             if not database.is_closed():
                 database.close()
             
-            # Connect to database
             database.connect(reuse_if_open=True)
-            
-            # Test connection
             database.execute_sql('SELECT 1')
             
-            # Check if tables exist (created by Liquibase migrations)
-            from models import check_tables_exist
             if not check_tables_exist():
                 logger.warning("Database tables not found. Please run Liquibase migrations first.")
                 logger.info("Run: docker-compose run --rm liquibase")
@@ -62,7 +57,6 @@ class DatabaseManager:
             if database.is_closed():
                 return {"status": "disconnected", "message": "Database connection is closed"}
             
-            # Test with a simple query
             database.execute_sql('SELECT 1')
             return {"status": "healthy", "message": "Database connection is active"}
             
@@ -86,5 +80,4 @@ def get_db():
     return database
 
 
-# Global database manager instance
 db_manager = DatabaseManager()

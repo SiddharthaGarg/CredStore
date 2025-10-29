@@ -1,136 +1,123 @@
-# 🚀 Product Reviews API - Complete Setup with Liquibase & Docker
+# Product Reviews API - Setup Guide
 
-## ⚡ Follow Quick Start (Recommended) from attached QUICK_START.md file
+FastAPI-based product reviews system with PostgreSQL, Peewee ORM, and Docker.
 
-OR 
+## Quick Start (Recommended)
 
-**One-command setup** - runs Docker, migrations, creates Python environment, and inserts sample users:
-
-## Prerequisites
+### Prerequisites
 - Python 3.11+
-- Docker
-- [uv](https://docs.astral.sh/uv/) - Fast Python package manager
+- Docker & Docker Compose
+- [uv](https://docs.astral.sh/uv/) package manager
 
+### One-Command Setup
 ```bash
 chmod +x setup.sh && ./setup.sh
 # If you get Docker permission errors, run with sudo:
 # sudo ./setup.sh
 ```
 
-**That's it!** The script will:
-- ✅ Check and validate uv installation
-- ✅ Start PostgreSQL in Docker
-- ✅ Run Liquibase migrations to create all tables
-- ✅ Create Python virtual environment with uv
-- ✅ Install all dependencies with uv
-- ✅ Insert sample users for testing  
-- ✅ Create `.env` configuration file
+This automatically:
+- ✅ Starts PostgreSQL in Docker
+- ✅ Runs database migrations
+- ✅ Creates Python virtual environment
+- ✅ Installs dependencies
+- ✅ Inserts sample users
 
-Then start the API:
+### Start API
 ```bash
-uv run  python main.py
+uv run python main.py
 ```
 
-Visit: http://localhost:8001/docs
+API available at: http://localhost:8001/docs
 
-## 📋 What You Get
+## Play with API's
 
-### 📦 **Modern Python Setup with uv**
-- Fast virtual environment creation with uv
-- Automatic dependency resolution and installation
-- pyproject.toml-based dependency management
-- Development dependencies included (pytest, httpx)
 
-### 🐳 **Docker Setup**
-- PostgreSQL 15 container with health checks
-- Liquibase container for migrations
-- Network isolation and volume persistence
-- Easy cleanup and reset commands
+### Getting Sample Data
 
-### 🗄️ **Professional Database Management**
-- **Liquibase migrations** for version-controlled schema changes
-- **Rollback capabilities** for safe deployments
-- **Constraint validation** (ratings 1-5, foreign keys, etc.)
-- **Performance indexes** on commonly queried fields
-- **Check constraints** for data integrity
+Product ID - Use product ID from list products api output in homepage module 
+User ID - 
+    1. Run ```bash python setup_user.py``` to see the list of users 
+    2. Query in table by connecting to database - ```bash sudo docker-compose exec postgres psql -U postgres -d product_reviews```
 
-### 👥 **Sample Data**
-- 6 sample users with varied profiles
-- UUIDs ready for API testing
-- Real-world example data structure
 
-### 🔧 **Production-Ready Configuration**
-- Environment-based configuration with uv
-- Health check endpoints
-- Comprehensive error handling
-- Connection pooling and management
-- Fast dependency management with uv
+### API Endpoints
 
-## 📁 Project Structure
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/reviews/{product_id}/metrics` | Get review metrics (total, avg rating, distribution) |
+| GET | `/api/v1/reviews/{product_id}` | List product reviews (paginated) |
+| POST | `/api/v1/reviews/{product_id}` | Add new review |
+| PUT | `/api/v1/reviews/{review_id}` | Update review |
+| DELETE | `/api/v1/reviews/{review_id}` | Delete review |
+| GET | `/api/v1/reviews/{review_id}` | Get review details |
+| POST | `/api/v1/reviews/{review_id}/comments` | Add comment |
+| GET | `/api/v1/reviews/{review_id}/comments` | List comments (paginated) |
+| GET | `/health` | Health check |
+
+
+## Manual Setup
+
+### 1. Start Database
+```bash
+docker-compose up -d postgres
+```
+
+### 2. Run Migrations
+```bash
+docker-compose run --rm liquibase
+```
+
+### 3. Install Dependencies
+```bash
+uv sync
+```
+
+### 4. Setup Environment
+```bash
+cp .env.example .env
+```
+
+### 5. Insert Sample Users
+```bash
+uv run python setup_users.py
+```
+
+### 6. Run API
+```bash
+uv run python main.py
+```
+
+
+## Project Structure
 
 ```
 product_reviews/
-├── 🐳 Docker & Migrations
-│   ├── docker-compose.yml           # PostgreSQL + Liquibase services
-│   ├── liquibase.properties         # Database connection config
-│   └── migrations/                  # Liquibase migration files
-│       ├── db.changelog-master.xml  # Master changelog
-│       ├── 01-create-users-table.xml
-│       ├── 02-create-reviews-table.xml
-│       ├── 03-create-comments-table.xml
-│       ├── 04-create-review-metrics-table.xml
-│       └── 05-create-indexes.xml
-│
-├── 🔧 Setup Scripts
-│   ├── setup.sh                    # Automated setup with uv (RECOMMENDED)
-│   ├── setup_users.py              # Insert sample users
-│
-├── 🏗️ Application Code
-│   ├── main.py                     # FastAPI application
-│   ├── models.py                   # Database models (Peewee)
-│   ├── schemas.py                  # API request/response schemas
-│   ├── database.py                 # Connection management
-│   ├── config.py                   # Configuration settings
-│   ├── services/                   # Business logic layer
-│   └── routers/                    # API endpoints
-│
-└── 📖 Documentation
-    ├── LIQUIBASE_SETUP.md          # Detailed Liquibase guide
-    ├── API_README.md               # API documentation
-    ├── QUICK_START.md              # Quick start guide
-    └── pyproject.toml              # Python dependencies (uv format)
+├── db/
+│   ├── models/        # Database models
+│   ├── dao/          # Data access objects
+│   ├── migrations/   # Liquibase migrations
+│   └── manager.py    # Database connection
+├── services/         # Business logic
+├── api/             # API layer (routers, schemas)
+├── events/          # Event bus system
+├── main.py          # FastAPI app
+├── config.py        # Configuration
+└── setup.sh         # Automated setup script
 ```
 
+## Troubleshooting
 
-## 🧪 Testing Your Setup
-
-```bash
-# Health check
-curl http://localhost:8001/health
-
-# Create a review (use user ID from setup output)
-curl -X POST "http://localhost:8001/api/v1/reviews/$(uuidgen)" \
-  -H "Content-Type: application/json" \
-  -d '{"user_id": "USER_ID_HERE", "rating": 5, "description": "Great!"}'
-
-# Get review metrics
-curl "http://localhost:8001/api/v1/reviews/PRODUCT_ID/metrics" | jq
-```
-
-## 🐛 Troubleshooting
-
-### Database Issues
+### Database Connection Issues
 ```bash
 # Check PostgreSQL status
 docker-compose ps postgres
 
-# View database logs
+# View logs
 docker-compose logs postgres
 
-# Reset everything
+# Reset database
 docker-compose down -v && ./setup.sh
-# If you get Docker permission errors:
-# sudo docker-compose down -v && sudo ./setup.sh
 ```
 
 ### Migration Issues
@@ -138,37 +125,47 @@ docker-compose down -v && ./setup.sh
 # Validate migrations
 docker-compose run --rm liquibase validate
 
-# Check migration status
+# Check status
 docker-compose run --rm liquibase status
 ```
 
-### Python Issues
+### Python Environment
 ```bash
-# Check database connection
-uv run python -c "from models import check_tables_exist; print('✅ OK' if check_tables_exist() else '❌ Tables missing')"
-
 # Reinstall dependencies
 uv sync --force
+
+# Verify database tables
+uv run python -c "from db.models import check_tables_exist; print(check_tables_exist())"
 ```
 
-## 💡 Key Benefits of This Setup
+## Testing
 
-✅ **Modern Python Tooling**: Fast dependency management with uv  
-✅ **Version-Controlled Schema**: All database changes tracked in git  
-✅ **Safe Deployments**: Rollback capabilities for production  
-✅ **Docker Isolation**: No local PostgreSQL installation needed  
-✅ **One-Command Setup**: `./setup.sh` gets everything running (use `sudo ./setup.sh` if Docker permission issues)  
-✅ **Production Ready**: Health checks, proper error handling  
-✅ **Sample Data**: Ready-to-test with realistic data  
-✅ **Clean Architecture**: SOLID principles, separated concerns  
+```bash
+# Health check
+curl http://localhost:8001/health
 
-## 🚀 Next Steps
+# Get review metrics
+curl "http://localhost:8001/api/v1/reviews/PRODUCT_ID/metrics"
 
-1. **API Development**: Add your business logic to `services/`
-2. **Frontend Integration**: Use the RESTful endpoints 
-3. **Production Deployment**: Configure environment variables
-4. **Monitoring**: Set up logging and health check monitoring
-5. **Testing**: Run tests with `uv run pytest`
+# Add review (use user ID from setup_users.py output)
+curl -X POST "http://localhost:8001/api/v1/reviews/PRODUCT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "USER_ID", "rating": 5, "description": "Great product!"}'
+```
 
-**Happy coding! 🎉**
+## Configuration
 
+Key environment variables (`.env`):
+- `DB_HOST` - Database host (default: localhost)
+- `DB_PORT` - Database port (default: 5432)
+- `DB_NAME` - Database name (default: product_reviews)
+- `DB_USER` - Database user (default: postgres)
+- `DB_PASSWORD` - Database password (default: password)
+
+## Features
+
+- **SOLID Architecture**: Clear separation of concerns
+- **Docker Setup**: Easy database management
+- **Liquibase Migrations**: Version-controlled schema changes
+- **Event-Driven**: Decoupled rating updates
+- **Modern Tooling**: Fast dependency management with uv

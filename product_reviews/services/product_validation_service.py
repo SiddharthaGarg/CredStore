@@ -73,32 +73,6 @@ class ProductValidationService:
             logger.error(f"Error checking product existence {product_id}: {e}")
             return False  # Allow operation to continue on error
     
-    async def get_product_info(self, product_id: str) -> Optional[dict]:
-        """Get basic product information from homepage database."""
-        if self.collection is None:
-            logger.warning("Homepage MongoDB not connected.")
-            return None
-        
-        try:
-            object_id = ObjectId(product_id)
-            product = await self.collection.find_one(
-                {"_id": object_id},
-                {"name": 1, "developer": 1, "category": 1}
-            )
-            
-            if product:
-                return {
-                    "id": str(product["_id"]),
-                    "name": product.get("name"),
-                    "developer": product.get("developer"),
-                    "category": product.get("category")
-                }
-            return None
-            
-        except Exception as e:
-            logger.error(f"Error getting product info {product_id}: {e}")
-            return None
-    
     def is_connected(self) -> bool:
         """Check if connected to homepage MongoDB."""
         return self.client is not None and self.collection is not None

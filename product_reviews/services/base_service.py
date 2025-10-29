@@ -4,8 +4,8 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from schemas import UserDetails
-from dao import UserDAO
+from api.schemas import UserDetails
+from db.dao import UserDAO
 
 logger = logging.getLogger(__name__)
 
@@ -15,20 +15,6 @@ class BaseService:
     
     def __init__(self, user_dao: UserDAO = None):
         self.user_dao = user_dao or UserDAO()
-    
-    async def get_user_details(self, user_id: str) -> Optional[UserDetails]:
-        """Get user details for nested responses."""
-        try:
-            user = self.user_dao.get_by_id(user_id)
-            if user:
-                return UserDetails(
-                    id=str(user.id),
-                    name=user.name,
-                    profile=user.profile
-                )
-            return None
-        except Exception:
-            return None
     
     async def validate_user_exists(self, user_id: str) -> bool:
         """Validate that a user exists."""

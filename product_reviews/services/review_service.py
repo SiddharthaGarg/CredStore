@@ -4,13 +4,13 @@ import logging
 from datetime import datetime, timezone
 from typing import List, Optional, Dict
 
-from schemas import (
-    ReviewCreate, ReviewUpdate, ReviewResponse, CommentsSection, 
+from api.schemas import (
+    ReviewCreate, ReviewUpdate, ReviewResponse, CommentsSection,
     CommentData, UserDetails
 )
 from .base_service import BaseService, ServiceException, ValidationException, NotFoundException
 from .product_validation_service import product_validator
-from dao import ReviewDAO, UserDAO, MetricsDAO, CommentDAO
+from db.dao import ReviewDAO, UserDAO, MetricsDAO, CommentDAO
 from events import EventBus, ReviewCreated, ReviewUpdated, ReviewDeleted
 
 logger = logging.getLogger(__name__)
@@ -36,19 +36,15 @@ class ReviewService(BaseService):
     async def create_review(self, product_id: str, review_data: ReviewCreate) -> ReviewResponse:
         """Create a new review."""
         try:
-            # Validate user exists
             if not await self.validate_user_exists(review_data.user_id):
                 raise ValidationException("Invalid user ID")
             
-            # Validate product exists in homepage MongoDB
             if not await product_validator.product_exists(product_id):
                 raise ValidationException("Product not found")
             
-            # Check if user already reviewed this product
-            if self.review_dao.user_has_reviewed_product(review_data.user_id, product_id):
+            if self.review_dao.get_by_user_and_product(review_data.user_id, product_id):
                 raise ValidationException("User has already reviewed this product")
             
-            # Create review
             review = self.review_dao.create_review(
                 product_id=product_id,
                 user_id=review_data.user_id,
@@ -56,10 +52,8 @@ class ReviewService(BaseService):
                 description=review_data.description
             )
             
-            # Create initial metrics
             self.metrics_dao.create_metrics(str(review.id))
             
-            # Emit ReviewCreated event
             self._emit_review_created_event(
                 product_id=product_id,
                 review_id=str(review.id),
@@ -105,14 +99,12 @@ class ReviewService(BaseService):
             if not review:
                 raise NotFoundException("Review", review_id)
             
-            # Update review fields
             review = self.review_dao.update_review(
                 review, 
                 rating=update_data.rating,
                 description=update_data.description
             )
             
-            # Update metrics if provided
             if update_data.upvotes is not None or update_data.downvotes is not None:
                 self.metrics_dao.update_votes(
                     review_id, 
@@ -120,7 +112,6 @@ class ReviewService(BaseService):
                     downvotes=update_data.downvotes
                 )
             
-            # Emit ReviewUpdated event if rating was changed
             if update_data.rating is not None:
                 self._emit_review_updated_event(
                     product_id=review.product_id,
@@ -144,17 +135,11 @@ class ReviewService(BaseService):
             if not review:
                 raise NotFoundException("Review", review_id)
             
-            # Store product_id before deletion for event
             product_id = review.product_id
             
-            # Delete review metrics directly by review_id (one DB call instead of two)
-            # Delete before review due to foreign key constraints
             self.metrics_dao.delete_metrics_by_review_id(review_id)
-            
-            # Hard delete the review
             self.review_dao.delete(review)
             
-            # Emit ReviewDeleted event for rating update
             self._emit_review_deleted_event(
                 product_id=product_id,
                 review_id=review_id
@@ -172,17 +157,13 @@ class ReviewService(BaseService):
     async def get_review_response(self, review) -> ReviewResponse:
         """Convert review to response format."""
         try:
-            # Get user details
             user_details = UserDetails(
                 id=str(review.user.id),
                 name=review.user.name,
                 profile=review.user.profile
             )
             
-            # Get metrics
             metrics = self.metrics_dao.get_metrics_by_review(str(review.id))
-            
-            # Get recent comments (limit to 5)
             recent_comments = self.comment_dao.get_recent_comments_by_review(str(review.id), 5)
             
             comment_data = []
@@ -219,14 +200,6 @@ class ReviewService(BaseService):
         except Exception as e:
             logger.error(f"Error creating review response: {e}")
             raise ServiceException("Failed to format review response")
-    
-    async def get_product_rating_distribution(self, product_id: str) -> Dict[str, int]:
-        """Get rating distribution for a product."""
-        try:
-            return self.review_dao.get_rating_distribution(product_id)
-        except Exception as e:
-            logger.error(f"Error getting rating distribution for product {product_id}: {e}")
-            raise ServiceException("Failed to get rating distribution")
     
     def _emit_review_created_event(self, product_id: str, review_id: str, user_id: str, rating: int):
         """Emit ReviewCreated event."""

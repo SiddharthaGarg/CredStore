@@ -6,7 +6,7 @@ from typing import Optional
 
 from bson import ObjectId
 
-from dao.review_dao import ReviewDAO
+from db.dao import ReviewDAO
 from services.product_validation_service import product_validator
 from .review_events import ReviewCreated, ReviewUpdated, ReviewDeleted
 

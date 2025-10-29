@@ -10,8 +10,8 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 
 from config import settings
-from database import db_manager
-from routers import reviews_router
+from db.manager import db_manager
+from api.routers import reviews_router
 from services import product_validator
 from events import setup_event_handlers
 from events.event_bus import event_bus

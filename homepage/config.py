@@ -2,19 +2,35 @@
 
 import os
 from typing import Optional
+from pathlib import Path
 
-# Try to load .env file if available
 try:
     from dotenv import load_dotenv
-    load_dotenv()
 except ImportError:
-    pass
+    load_dotenv = None
 
 
 class Settings:
     """Application settings."""
     
-    def __init__(self):
+    def __init__(self, env_file: Optional[str] = None):
+        """
+        Initialize settings.
+        
+        Args:
+            env_file: Optional path to .env file to load. If None, uses default .env
+                     or reads from environment variables only.
+        """
+        if env_file:
+            if load_dotenv is None:
+                raise ImportError("python-dotenv is required to load .env files")
+            load_dotenv(env_file, override=True)
+        elif load_dotenv:
+            # Try loading default .env file if it exists
+            default_env = Path(".env")
+            if default_env.exists():
+                load_dotenv(default_env, override=False)
+        
         # MongoDB settings
         self.mongodb_url: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
         self.mongodb_database: str = os.getenv("MONGODB_DATABASE", "appstore")
@@ -30,5 +46,5 @@ class Settings:
         self.debug: bool = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes")
 
 
-# Global settings instance
+# Global settings instance (default - loads .env if exists)
 settings = Settings()

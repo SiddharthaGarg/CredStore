@@ -36,3 +36,27 @@ Can you please add unit test cases for service files in  homepage module ?. Impo
 2. U can safely mock database and any third party calls
 3. Add required dependency like if using pytest in pyrpoject.toml file and add command to run tests with writing covergae report to html in readme file
 ----
+
+----
+Great, unit test cases are working as expected. Now, I want to write some integration test cases for testing happy flows in homepage module.  Things to consider
+1.  Separate test env for integration testing ( config, databases )
+2. Only write for success cases like successfull api calls - ( add product, update product , delete product, list products and search product ) 
+3. Ensure any dummy or other data inserted during test cases run is cleared once test case is completed. 
+
+Along with above instructions, follow best practices for writing integration test cases in python
+----
+
+
+----
+Explain each function wth decorators used in conftest file.. 
+----
+
+----
+Getting 500 for test cases because there is an event loop mismatch for ASGItransport created to send test api requests
+and event loop used for managing database operations
+----
+
+----
+I  think better to have separate env files for test / main application and  read that in config.py . Othwerise, main database 
+would be messed up 
+----

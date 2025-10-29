@@ -1,10 +1,10 @@
 """Database connection manager."""
 
 import logging
+import config
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase, AsyncIOMotorCollection
 from elasticsearch import AsyncElasticsearch
 
-from config import settings
 from db.dao import ProductDAO, SearchDAO
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,7 @@ class DatabaseManager:
     async def _connect_mongodb(self):
         """Connect to MongoDB."""
         try:
+            settings = config.settings
             self.mongodb_client = AsyncIOMotorClient(settings.mongodb_url)
             self.mongodb_database = self.mongodb_client[settings.mongodb_database]
             self.mongodb_collection = self.mongodb_database[settings.mongodb_collection]
@@ -52,6 +53,7 @@ class DatabaseManager:
     async def _connect_elasticsearch(self):
         """Connect to Elasticsearch."""
         try:
+            settings = config.settings
             self.elasticsearch_client = AsyncElasticsearch(
                 [settings.elasticsearch_url],
                 verify_certs=False,

@@ -46,7 +46,7 @@ A FastAPI-based backend service for an App Store-like homepage module with Mongo
    EOF
    ```
 
-3. **Activate Virtual Env**:
+3. **Activate Virtual Env** ( Optional if running main.py with UV command):
    ```bash
    # Create virtual env and install dependencies
    uv sync
@@ -183,16 +183,37 @@ homepage/
 
 ### Running Tests
 
+#### Unit Tests
+
 ```bash
 # Install test dependencies
 uv sync --extra dev
 
-# Run tests with coverage report
-pytest --cov=services --cov-report=html
+# Run unit tests with coverage report
+pytest tests/unit/ --cov=services --cov-report=html
 
 # View coverage report
 # Open htmlcov/index.html in your browser
 ```
+
+#### Integration Tests
+
+```bash
+# Ensure MongoDB and Elasticsearch are running
+docker-compose up -d
+
+# Set test environment variables (optional, defaults work)
+export TEST_MONGODB_DATABASE=appstore_test
+export TEST_ELASTICSEARCH_INDEX=products_test
+
+# Run integration tests
+pytest tests/integration/
+
+# Run integration tests with coverage
+pytest tests/integration/ --cov=services --cov-report=html
+```
+
+**Note**: Integration tests use separate test databases to ensure isolation from development data.
 
 ## Configuration Options
 

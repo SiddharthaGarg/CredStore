@@ -11,19 +11,16 @@ A FastAPI-based backend service for an App Store-like homepage module with Mongo
 - **MongoDB Storage**: Reliable product data storage
 - **RESTful API**: Clean and well-documented API endpoints
 
-## Requirements
-
-- Python 3.13+
-- MongoDB 4.4+
-- Elasticsearch 8.0+
-- Docker and Docker Compose (optional, for easy setup)
+## Prerequisites
+- Python 3.11+
+- Docker & Docker Compose
+- [uv](https://docs.astral.sh/uv/) package manager
 
 ## Initial Project Setup
-**Install python3.13  and UV (package manager) using brew**
+**Install python3.13  and UV (package manager)**
 
 
 ## Quick Start with Docker
-
 
 
 1. **Start the databases**:

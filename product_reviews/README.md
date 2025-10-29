@@ -25,6 +25,13 @@ This automatically:
 
 ### Start API
 ```bash
+# Create virtual env and install dependencies
+uv sync 
+
+# Activate virtual env
+source .venv/bin/activate
+
+# Start fast api server
 uv run python main.py
 ```
 

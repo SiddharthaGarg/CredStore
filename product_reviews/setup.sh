@@ -65,11 +65,11 @@ check_docker_compose() {
     print_status "Docker Compose is available: $DOCKER_COMPOSE_CMD"
 }
 
-# Clean up existing containers and volumes
+# Clean up existing containers (keeps volumes to preserve data)
 cleanup() {
-    print_info "Cleaning up existing containers and volumes..."
-    $DOCKER_COMPOSE_CMD down -v --remove-orphans 2>/dev/null || true
-    print_status "Cleanup completed"
+    print_info "Stopping existing containers (data will be preserved)..."
+    $DOCKER_COMPOSE_CMD down --remove-orphans 2>/dev/null || true
+    print_status "Containers stopped"
 }
 
 # Start PostgreSQL container
@@ -198,10 +198,14 @@ main() {
     echo ""
     
     # Ask user if they want to clean up first
-    echo -n "Do you want to clean up existing containers? (y/N): "
+    echo ""
+    echo -n "Do you want to stop existing containers? (y/N) [data will be preserved]: "
     read -r cleanup_response
     if [[ $cleanup_response =~ ^[Yy]$ ]]; then
         cleanup
+        echo ""
+    else
+        print_info "Skipping cleanup"
         echo ""
     fi
     

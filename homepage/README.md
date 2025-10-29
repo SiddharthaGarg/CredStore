@@ -188,10 +188,13 @@ homepage/
 
 ```bash
 # Install test dependencies
-uv pip install pytest pytest-asyncio httpx
+uv sync --extra dev
 
-# Run tests (when available)
-pytest
+# Run tests with coverage report
+pytest --cov=services --cov-report=html
+
+# View coverage report
+# Open htmlcov/index.html in your browser
 ```
 
 ## Configuration Options

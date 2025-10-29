@@ -29,3 +29,10 @@ What should flow look like when API request comes for adding a product i.e ideal
 Okay, Now following similar project structure for product_reviews module ( proper separation of concern , classes and dependency injection for api, db and service layerr) , restructure my homepage module. 
 Restructuring shouldn't affect core functionality and business logics
 ----
+
+----
+Can you please add unit test cases for service files in  homepage module ?. Important instructions to follow :- 
+1. Ensure 100 % code coverage for the files being tested
+2. U can safely mock database and any third party calls
+3. Add required dependency like if using pytest in pyrpoject.toml file and add command to run tests with writing covergae report to html in readme file
+----

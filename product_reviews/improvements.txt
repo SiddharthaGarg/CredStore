@@ -1,0 +1,3 @@
+1. Whenever a review is added / updated for a product , update the product's avg rating in MongoDb DATABASE ( Can do it using direct db call or event-based design )
+
+2. Test Add comments / List review comments API 

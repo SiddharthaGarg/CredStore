@@ -1,0 +1,247 @@
+
+----
+Now, I want to build the other module of my app store - product reviews system. I am providing database models and api schema for that , provide me working code according to that .  Important Instructions -> 
+1. FastAPI server 
+2. Postgresql as database
+3. Peewee as ORM
+4. Adhere to SOLID Design principles, and have clear separation of concerns between api , db and service layers
+5. Assume request and response in -accordance with other api's structure for the missing one's.
+
+
+
+Database Schema
+Class User:
+id: UUID
+name: varchar
+email : varchar
+profile: s3-url-image
+
+Class Review:
+  id: UUID
+  product_id: FK ( references to product )
+  user_id: FK ( reference to user )
+  rating: int  (1 -5 )
+  description: Text ( VARCHAR- 255)
+  created_at: timestamp
+  updated_at: timestamp
+  status: Inactive / active
+
+
+Class Comments:
+  id: UUID
+  review_id: str FK ( references to Review )
+  description: str
+  user_id: str 
+
+Class ReviewMetrics:
+Id: UUID
+review_id: FK ( references to Review )
+upvotes: int
+downvotes: int
+comments: int
+
+
+API SCHEMA
+1. List Review Metrics
+2. List Reviews
+3. Add Review
+4. Update Review
+5. Delete Review
+6. Add Comment on Review
+7. List Review Comments
+
+List Reviews Metrics -  List cumulative metrics of all reviews on a product
+URI - Get <prefix>/reviews/<product_id>/metrics
+Response - 
+{
+    "data": {
+    	  "ratings": {  // total 1-star , 2-star ,... 5-star rating for a product
+	    "1": int,
+	    "2": int,
+	    "3": int,
+	    "4": int,
+	    "5": int
+        }
+    },
+    "err": {
+     "message": str,
+     "code": str
+    }
+
+}
+
+
+
+List Reviews 
+URI - Get <prefix>/reviews/<product_id>
+Request -
+Limit - 20 
+Page - 2, 3, 10
+Response -   {
+
+   "data": [
+   	  
+   	 {
+   	   
+   	   "id": str,
+   	   "user_details": {
+   	     "id": str,
+   	     "name": str,
+   	     "profile": str
+   	   },
+   	   "rating": int,
+   	   "description": str,
+   	   "upvotes": int,
+   	   "downvotes": int,
+   	   "comments": [
+   	      "total": int // total comments on the review
+   	      "data": [   // fixed list like recent 5 comments
+   	         
+	   	         {
+		  	  "id": "comment-id",
+			   "user_details": {
+		   	     "id": str,
+		   	     "name": str,
+		   	     "profile": str
+		   	   },
+		   	   "description": "comment-description"
+		},
+		...
+   	      
+   	      ]  
+   	      
+   	   ]
+   	 
+   	 } ,
+   	 ...
+   
+   
+   ],
+   "err": { // if there
+      "code": str,
+      "message": str
+   }
+
+}
+
+- Add Review
+Update Review :
+Request Body - 
+ {  
+ 	"id": str,
+ 	"user_id": str,
+   	"rating": int,
+   	"description": str,
+   	"upvotes": int,  // updated upvotes count if someone upvotes or remove his upvotes
+   	"downvotes": int,
+ }
+ 
+ Response -
+ {
+    
+    "data":  {
+   	   
+   	   "id": str,
+   	   "user_details": {
+   	     "id": str,
+   	     "name": str,
+   	     "profile": str
+   	   },
+   	   "rating": int,
+   	   "description": str,
+   	   "upvotes": int,
+   	   "downvotes": int,
+   	   "comments": [
+   	      "total": int // total comments on the review
+   	      "data": [   // fixed list like recent 5 comments
+   	         
+	   	         {
+		  	  "id": "comment-id",
+			   "user_details": {
+		   	     "id": str,
+		   	     "name": str,
+		   	     "profile": str
+		   	   },
+		   	   "description": "comment-description"
+		},
+		...
+   	      
+   	      ]  
+   	      
+   	   ]
+   	 
+   	 },
+   	 "err": {}
+   
+ }
+   
+   
+    
+- Delete Review
+Response - 204 , No Content
+
+
+Add Comment on a Review
+ URI - POST <prefix>/reviews/<review_id>/comments
+ Request body - {
+  "description": str,
+  "user_id": str
+ }
+ Response -  201 , Created
+ 
+ 
+List Review Comments
+
+URI - Get <prefix>/reviews/<review_id>/comments
+Request params -
+page, limit
+Response - {
+"data": [
+	{
+	  "id": "comment-id",
+	   "user_details": {
+   	     "id": str,
+   	     "name": str,
+   	     "profile": str
+   	   },
+   	   "description": "comment-description"
+	},
+	...
+],
+"err": {}
+
+}
+----
+
+----
+Can you please use liquibase migrations for creating tables and have an easy setup file for starting database in a  
+docker container , running migrations and inserting only dummy users data in it. 
+----
+
+
+----
+I am using uv for Dependencies. 
+Modify setup and associated readme files accordingly. ( create venv using uv, installing dependencies and so on )
+----
+
+----
+Great, now do the following changes ->
+1. Remove unused files like setup_db.py
+2. Modify migration to make product_id column in reviews as string only
+3. Don't directly call peewee models in service layer.  Instead extract the db interacttions to a dao layer ( which uses those db model as dependecy ) and then inject this dao layer in service layer. 
+4. Product_id actually referes to the id column of productInDB document in my mongodb database. Ensure it's existence when receiving add review request
+----
+
+----
+Unexpected error running Liquibase: /liquibase/liquibase.properties. Getting this when running the setup script
+----
+
+----
+Getting permission error when liquibase trying to access changelog file inside container which is mounted to my local directory.
+I have relevant permissions and i am using fedora as OS
+----
+
+----
+Update / Delete review api's don't need to have user_id field as we have review_id (unique) as path param already
+----
+

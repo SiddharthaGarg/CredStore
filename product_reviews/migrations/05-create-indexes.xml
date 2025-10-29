@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="05-create-indexes" author="product-reviews-api">
+        <comment>Create performance indexes</comment>
+        
+        <!-- Indexes for users table -->
+        <createIndex tableName="users" indexName="idx_users_email" unique="true">
+            <column name="email"/>
+        </createIndex>
+
+        <!-- Indexes for reviews table -->
+        <createIndex tableName="reviews" indexName="idx_reviews_product_id">
+            <column name="product_id"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_rating">
+            <column name="rating"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_status">
+            <column name="status"/>
+        </createIndex>
+
+        <!-- Composite index for unique user-product review -->
+        <createIndex tableName="reviews" indexName="idx_reviews_user_product" unique="true">
+            <column name="user_id"/>
+            <column name="product_id"/>
+        </createIndex>
+
+        <!-- Indexes for comments table -->
+        <createIndex tableName="comments" indexName="idx_comments_review_id">
+            <column name="review_id"/>
+        </createIndex>
+
+        <createIndex tableName="comments" indexName="idx_comments_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="comments" indexName="idx_comments_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <!-- Index for review_metrics table -->
+        <createIndex tableName="review_metrics" indexName="idx_review_metrics_review_id" unique="true">
+            <column name="review_id"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="users" indexName="idx_users_email"/>
+            <dropIndex tableName="reviews" indexName="idx_reviews_product_id"/>
+            <dropIndex tableName="reviews" indexName="idx_reviews_user_id"/>
+            <dropIndex tableName="reviews" indexName="idx_reviews_created_at"/>
+            <dropIndex tableName="reviews" indexName="idx_reviews_rating"/>
+            <dropIndex tableName="reviews" indexName="idx_reviews_status"/>
+            <dropIndex tableName="reviews" indexName="idx_reviews_user_product"/>
+            <dropIndex tableName="comments" indexName="idx_comments_review_id"/>
+            <dropIndex tableName="comments" indexName="idx_comments_user_id"/>
+            <dropIndex tableName="comments" indexName="idx_comments_created_at"/>
+            <dropIndex tableName="review_metrics" indexName="idx_review_metrics_review_id"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

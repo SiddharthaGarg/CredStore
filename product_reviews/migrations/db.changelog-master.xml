@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <!-- Include all migration files -->
+    <include file="01-create-users-table.xml" relativeToChangelogFile="true"/>
+    <include file="02-create-reviews-table.xml" relativeToChangelogFile="true"/>
+    <include file="03-create-comments-table.xml" relativeToChangelogFile="true"/>
+    <include file="04-create-review-metrics-table.xml" relativeToChangelogFile="true"/>
+    <include file="05-create-indexes.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>
+

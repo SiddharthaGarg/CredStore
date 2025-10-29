@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="04-create-review-metrics-table" author="product-reviews-api">
+        <comment>Create review_metrics table</comment>
+        
+        <createTable tableName="review_metrics">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="review_id" type="UUID">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="upvotes" type="INTEGER" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="downvotes" type="INTEGER" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comments_count" type="INTEGER" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Add foreign key constraint -->
+        <addForeignKeyConstraint
+            baseTableName="review_metrics"
+            baseColumnNames="review_id"
+            constraintName="fk_review_metrics_review_id"
+            referencedTableName="reviews"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <!-- Add check constraints -->
+        <sql>
+            ALTER TABLE review_metrics ADD CONSTRAINT chk_upvotes CHECK (upvotes >= 0);
+        </sql>
+        
+        <sql>
+            ALTER TABLE review_metrics ADD CONSTRAINT chk_downvotes CHECK (downvotes >= 0);
+        </sql>
+        
+        <sql>
+            ALTER TABLE review_metrics ADD CONSTRAINT chk_comments_count CHECK (comments_count >= 0);
+        </sql>
+
+        <rollback>
+            <dropTable tableName="review_metrics"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

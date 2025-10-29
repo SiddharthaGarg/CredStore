@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: product_reviews_db
+    environment:
+      POSTGRES_DB: product_reviews
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d product_reviews"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - product_reviews_network
+
+  liquibase:
+    image: liquibase/liquibase:4.24
+    container_name: product_reviews_liquibase
+    user: root # Run as root to avoid permission issues
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://postgres:5432/product_reviews
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=password
+      - LIQUIBASE_COMMAND_CHANGELOG_FILE=changelog/db.changelog-master.xml
+      - LIQUIBASE_LOG_LEVEL=INFO
+    volumes:
+      - ./migrations:/liquibase/changelog:Z
+    command: update
+    networks:
+      - product_reviews_network
+
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  product_reviews_network:
+    driver: bridge
+

@@ -245,3 +245,10 @@ I have relevant permissions and i am using fedora as OS
 Update / Delete review api's don't need to have user_id field as we have review_id (unique) as path param already
 ----
 
+
+-----
+Whenever a review is added / updated / deleted for a product successfully , update the product's avg rating in MongoDb DATABASE  
+( Use events for it instead of directly invoking a function in homepage module so that
+ it can be extracted out as a separate process later on 
+ )
+-----

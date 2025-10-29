@@ -15,6 +15,7 @@ from services import ReviewService, CommentService, MetricsService
 from services.base_service import (
     ServiceException, ValidationException, NotFoundException, PermissionException
 )
+from events import event_bus
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 # Service instances
-review_service = ReviewService()
+# Initialize services with dependency injection
+review_service = ReviewService(event_bus=event_bus)
 comment_service = CommentService()
 metrics_service = MetricsService()
 

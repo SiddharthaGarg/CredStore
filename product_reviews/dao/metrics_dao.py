@@ -135,3 +135,15 @@ class MetricsDAO(BaseDAO):
         except Exception as e:
             logger.error(f"Error getting metrics by review IDs: {e}")
             return {}
+    
+    def delete_metrics_by_review_id(self, review_id: str) -> bool:
+        """Delete metrics by review ID without fetching first (optimized)."""
+        try:
+            deleted_count = (ReviewMetrics
+                           .delete()
+                           .where(ReviewMetrics.review == UUID(review_id))
+                           .execute())
+            return deleted_count > 0
+        except Exception as e:
+            logger.error(f"Error deleting metrics for review {review_id}: {e}")
+            return False

@@ -13,6 +13,8 @@ from config import settings
 from database import db_manager
 from routers import reviews_router
 from services import product_validator
+from events import setup_event_handlers
+from events.event_bus import event_bus
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +39,10 @@ async def lifespan(app: FastAPI):
             logger.info("Homepage MongoDB connection established")
         else:
             logger.warning("Homepage MongoDB connection failed - product validation will be skipped")
+        
+        # Setup event handlers
+        setup_event_handlers()
+        logger.info("Event handlers registered")
             
     except Exception as e:
         logger.error(f"Failed to establish database connections: {e}")
@@ -46,6 +52,7 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down Product Reviews API...")
+    event_bus.shutdown()
     await db_manager.disconnect()
     await product_validator.disconnect()
 

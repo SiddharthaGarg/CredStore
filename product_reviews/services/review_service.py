@@ -1,6 +1,7 @@
 """Review service for business logic."""
 
 import logging
+from datetime import datetime, timezone
 from typing import List, Optional, Dict
 
 from schemas import (
@@ -10,6 +11,7 @@ from schemas import (
 from .base_service import BaseService, ServiceException, ValidationException, NotFoundException
 from .product_validation_service import product_validator
 from dao import ReviewDAO, UserDAO, MetricsDAO, CommentDAO
+from events import EventBus, ReviewCreated, ReviewUpdated, ReviewDeleted
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +19,19 @@ logger = logging.getLogger(__name__)
 class ReviewService(BaseService):
     """Service for review operations."""
     
-    def __init__(self, review_dao: ReviewDAO = None, user_dao: UserDAO = None, 
-                 metrics_dao: MetricsDAO = None, comment_dao: CommentDAO = None):
+    def __init__(
+        self, 
+        review_dao: ReviewDAO = None, 
+        user_dao: UserDAO = None, 
+        metrics_dao: MetricsDAO = None, 
+        comment_dao: CommentDAO = None,
+        event_bus: EventBus = None
+    ):
         super().__init__(user_dao)
         self.review_dao = review_dao or ReviewDAO()
         self.metrics_dao = metrics_dao or MetricsDAO()
         self.comment_dao = comment_dao or CommentDAO()
+        self.event_bus = event_bus
     
     async def create_review(self, product_id: str, review_data: ReviewCreate) -> ReviewResponse:
         """Create a new review."""
@@ -49,6 +58,14 @@ class ReviewService(BaseService):
             
             # Create initial metrics
             self.metrics_dao.create_metrics(str(review.id))
+            
+            # Emit ReviewCreated event
+            self._emit_review_created_event(
+                product_id=product_id,
+                review_id=str(review.id),
+                user_id=review_data.user_id,
+                rating=review_data.rating
+            )
             
             self._log_operation("Create review", str(review.id), True)
             return await self.get_review_response(review)
@@ -103,6 +120,14 @@ class ReviewService(BaseService):
                     downvotes=update_data.downvotes
                 )
             
+            # Emit ReviewUpdated event if rating was changed
+            if update_data.rating is not None:
+                self._emit_review_updated_event(
+                    product_id=review.product_id,
+                    review_id=review_id,
+                    rating=update_data.rating
+                )
+            
             self._log_operation("Update review", review_id, True)
             return await self.get_review_response(review)
             
@@ -113,14 +138,27 @@ class ReviewService(BaseService):
             raise ServiceException("Failed to update review")
     
     async def delete_review(self, review_id: str) -> bool:
-        """Delete a review (soft delete by changing status)."""
+        """Delete a review (hard delete)."""
         try:
             review = self.review_dao.get_review_with_user(review_id)
             if not review:
                 raise NotFoundException("Review", review_id)
             
-            # Soft delete - change status to inactive
-            self.review_dao.soft_delete_review(review)
+            # Store product_id before deletion for event
+            product_id = review.product_id
+            
+            # Delete review metrics directly by review_id (one DB call instead of two)
+            # Delete before review due to foreign key constraints
+            self.metrics_dao.delete_metrics_by_review_id(review_id)
+            
+            # Hard delete the review
+            self.review_dao.delete(review)
+            
+            # Emit ReviewDeleted event for rating update
+            self._emit_review_deleted_event(
+                product_id=product_id,
+                review_id=review_id
+            )
             
             self._log_operation("Delete review", review_id, True)
             return True
@@ -189,4 +227,55 @@ class ReviewService(BaseService):
         except Exception as e:
             logger.error(f"Error getting rating distribution for product {product_id}: {e}")
             raise ServiceException("Failed to get rating distribution")
+    
+    def _emit_review_created_event(self, product_id: str, review_id: str, user_id: str, rating: int):
+        """Emit ReviewCreated event."""
+        if self.event_bus is None:
+            logger.debug("Event bus not available, skipping event emission")
+            return
+        
+        try:
+            self.event_bus.publish(ReviewCreated(
+                product_id=product_id,
+                review_id=review_id,
+                user_id=user_id,
+                rating=rating,
+                timestamp=datetime.now(timezone.utc)
+            ))
+            logger.debug(f"Emitted ReviewCreated event for review {review_id}")
+        except Exception as e:
+            logger.error(f"Error emitting ReviewCreated event: {e}", exc_info=True)
+    
+    def _emit_review_updated_event(self, product_id: str, review_id: str, rating: int):
+        """Emit ReviewUpdated event."""
+        if self.event_bus is None:
+            logger.debug("Event bus not available, skipping event emission")
+            return
+        
+        try:
+            self.event_bus.publish(ReviewUpdated(
+                product_id=product_id,
+                review_id=review_id,
+                rating=rating,
+                timestamp=datetime.now(timezone.utc)
+            ))
+            logger.debug(f"Emitted ReviewUpdated event for review {review_id}")
+        except Exception as e:
+            logger.error(f"Error emitting ReviewUpdated event: {e}", exc_info=True)
+    
+    def _emit_review_deleted_event(self, product_id: str, review_id: str):
+        """Emit ReviewDeleted event."""
+        if self.event_bus is None:
+            logger.debug("Event bus not available, skipping event emission")
+            return
+        
+        try:
+            self.event_bus.publish(ReviewDeleted(
+                product_id=product_id,
+                review_id=review_id,
+                timestamp=datetime.now(timezone.utc)
+            ))
+            logger.debug(f"Emitted ReviewDeleted event for review {review_id}")
+        except Exception as e:
+            logger.error(f"Error emitting ReviewDeleted event: {e}", exc_info=True)
 
